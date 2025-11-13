@@ -1,59 +1,38 @@
 import pandas as pd
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-# 엑셀 불러오기
 def load_prices():
     df = pd.read_excel("prices.xlsx")
     df = df.fillna(0)
 
-    # 지역명 → 가격표(dict) 형태로 변환
-    price_dict = {}
+    # 첫 번째 열: 지역
+    regions = df.iloc[:, 0].tolist()
 
-    for _, row in df.iterrows():
-        region = row["지역"]
+    # 나머지 열(평당단가, 원룸, 복층원룸...)
+    cols = df.columns.tolist()[1:]
 
-        # 지역별 가격표
-        price_dict[region] = {
-            "평당단가": int(row["평당단가"]),
-            "원룸": int(row["원룸"]),
-            "복층원룸": int(row["복층원룸"]),
-            "1.5룸": int(row["1.5룸"]),
-            "투룸": int(row["투룸"]),
-            "쓰리룸": int(row["쓰리룸"])
-        }
+    data = {}
 
-    return price_dict
+    for i, region in enumerate(regions):
+        data[region] = {}
+        for col in cols:
+            data[region][col] = int(df.loc[i, col])
 
+    return data
 
-prices = load_prices()
-
+price_json = load_prices()
 
 @app.route("/price")
 def get_price():
-    region = request.args.get("region")
-    room = request.args.get("room")   # ex: 원룸 / 투룸 / 평당단가
-
-    if region not in prices:
-        return jsonify({"error": "Invalid region"}), 400
-
-    if room not in prices[region]:
-        return jsonify({"error": "Invalid room type"}), 400
-
-    return jsonify({
-        "region": region,
-        "room": room,
-        "price": prices[region][room]
-    })
-
+    return jsonify(price_json)
 
 @app.route("/")
 def home():
-    return "Cleaning price API is running"
-
+    return "Cleaning price API running"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
