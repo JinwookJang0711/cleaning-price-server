@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>입주청소 견적 계산기</title>
+<style>
+body {
+  font-family: 'Pretendard', sans-serif;
+  background: #fff4f7; /* 💗 연한 핑크 배경 */
+  margin: 0;
+  padding: 30px;
+}
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1300px;
+  margin: auto;
+}
+.panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+h2 {
+  text-align: center;
+  color: #444;
+}
+label {
+  font-weight: 600;
+  margin-top: 10px;
+  display: block;
+  color: #333;
+}
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* ✅ 날짜/시간 한 줄 정렬 */
+.flex-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.flex-row input[type="date"] {
+  width: 55%;
+}
+.flex-row select {
+  width: auto;
+  min-width: 60px;
+}
+
+/* 옵션 체크박스 스타일 */
+.options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+}
+.options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.options input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff5d8f;
+  cursor: pointer;
+}
+
+/* 예약금 표시 */
+.range-value {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 8px;
+  color: #ff5d8f;
+}
+
+/* ✅ 결과창: 처음엔 숨김 */
+.result-box {
+  display: none;
+  text-align: center;
+  margin-top: 25px;
+  font-weight: bold;
+  white-space: pre-line;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  background: #ff5d8f;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover { background: #e44d7f; }
+.copy-btn { background: #6cc070; }
+.copy-btn:hover { background: #5aa85e; }
+</style>
+</head>
+<body>
+<h2>🧼 입주청소 견적 계산기</h2>
+
+<div class="container">
+  <!-- 왼쪽 -->
+  <div class="panel">
+    <h3>📋 청소 기본정보</h3>
+    <div class="flex-row">
+      <div>
+        <label>청소 날짜</label>
+        <input type="date" id="date" style="width: 120px;">
+      </div>
+
+      <div>
+        <label>청소 시간</label>
+        <div style="display:flex; gap:6px;">
+          <select id="ampm"><option>오전</option><option>오후</option></select>
+          <select id="hour"></select>
+          <select id="minute"><option>00</option><option>30</option></select>
+        </div>
+      </div>
+    </div>
+
+    <label>지역</label>
+    <select id="region">
+      <option>서울/경기/인천/세종/대전</option>
+      <option>협소지역(경남/경북/전남/전북)</option>
+      <option>진짜협소지역</option>
+    </select>
+
+    <label>형태</label>
+    <select id="type">
+      <option>원룸</option>
+      <option>복층원룸</option>
+      <option>1.5룸</option>
+      <option>투룸</option>
+      <option>쓰리룸</option>
+      <option>평형</option>
+    </select>
+
+    <label>평수 (25평 이상 입력)</label>
+    <input type="number" id="size" min="25">
+
+    <label>예약금 레버 (기본 5단계)</label>
+    <input type="range" id="depositRange" min="1" max="10" step="1" value="5" oninput="updateRange()">
+    <div class="range-value" id="rangeValue">예약금: 50,000원</div>
+
+    <button onclick="calc()">💰 견적 결과 보기</button>
+  </div>
+
+  <!-- 오른쪽 -->
+  <div class="panel">
+    <h3>✨ 추가 옵션 선택</h3>
+    <div class="options">
+      <label><input type="checkbox" value="에어컨필터"> 에어컨 필터 (+10,000원)</label>
+      <label><input type="checkbox" value="세탁기"> 세탁기 (+10,000원)</label>
+      <label><input type="checkbox" value="건조기"> 건조기 (+10,000원)</label>
+      <label><input type="checkbox" value="사이청소"> 사이/거주청소 (+40,000원)</label>
+      <label><input type="checkbox" value="대기시간"> 대기시간 (+30,000원)</label>
+      <label><input type="checkbox" value="새집증후군"> 새집증후군 (+70,000원)</label>
+      <label><input type="checkbox" value="동물털"> 동물털/냄새제거 (+40,000원)</label>
+      <label><input type="checkbox" value="기름떼"> 기름떼/물떼청소 (+40,000원)</label>
+      <label><input type="checkbox" value="냉장고"> 냉장고 양문 (+20,000원)</label>
+      <label><input type="checkbox" value="비확장베란다"> 비확장형 베란다 (+30,000원)</label>
+      <label><input type="checkbox" value="4층계단"> 4층계단 (+20,000원)</label>
+      <label><input type="checkbox" value="거주원룸"> 거주청소(원룸) (+20,000원)</label>
+      <label><input type="checkbox" value="바퀴방역"> 바퀴방역 (+30,000원)</label>
+      <label><input type="checkbox" value="벽지얼룩"> 벽지 얼룩제거 (+80,000원)</label>
+      <label><input type="checkbox" value="시스템분해"> 시스템에어컨 완전분해 (+80,000원)</label>
+      <label><input type="checkbox" value="시스템1WAY2"> 시스템에어컨(1WAY, 2대) (+50,000원)</label>
+      <label><input type="checkbox" value="시스템1WAY1"> 시스템에어컨(1WAY, 1대) (+30,000원)</label>
+      <label><input type="checkbox" value="마루코팅"> 마루코팅 (평당 5,000원)</label>
+      <label><input type="checkbox" value="외창청소"> 외창청소 (개당 5,000원)</label>
+    </div>
+  </div>
+</div>
+
+<div class="result-box" id="result"></div>
+<button class="copy-btn" id="copyBtn" style="display:none;" onclick="copyText()">복사하기</button>
+
+<script>
+let priceData = {};
+
+window.onload = async () => {
+  for (let h = 1; h <= 12; h++) {
+    document.getElementById("hour").innerHTML += `<option>${h}</option>`;
+  }
+
+  const res = await fetch("http://localhost:5001/price");
+  priceData = await res.json();
+
+  // ✅ 시간 변경 이벤트
+  document.getElementById("hour").addEventListener("change", checkTimeForExtraCleaning);
+  document.getElementById("ampm").addEventListener("change", checkTimeForExtraCleaning);
+};
+
+// ✅ 시간대 확인 → 사이청소 자동 체크/해제
+function checkTimeForExtraCleaning() {
+  const ampm = document.getElementById("ampm").value;
+  const hour = parseInt(document.getElementById("hour").value);
+  const extraOption = document.querySelector('.options input[value="사이청소"]');
+
+  // 오전 8~10시, 오후 12~2시는 정상 시간 → 사이청소 해제
+  const isNormal =
+    (ampm === "오전" && (hour >= 8 && hour <= 10)) ||
+    (ampm === "오후" && (hour >= 12 || hour <= 2));
+
+  extraOption.checked = !isNormal;
+}
+
+function updateRange() {
+  const v = document.getElementById("depositRange").value;
+  document.getElementById("rangeValue").innerText = `예약금: ${(v * 10000).toLocaleString()}원`;
+}
+
+function calc() {
+  const date = document.getElementById("date").value;
+  const ampm = document.getElementById("ampm").value;
+  const hour = document.getElementById("hour").value;
+  const minute = document.getElementById("minute").value;
+  const region = document.getElementById("region").value;
+  const type = document.getElementById("type").value;
+  const size = parseFloat(document.getElementById("size").value) || 0;
+  const deposit = parseInt(document.getElementById("depositRange").value) * 10000;
+
+  if (!date || !hour) {
+    alert("날짜와 시간을 선택해주세요.");
+    return;
+  }
+
+  const rData = priceData[region];
+  if (!rData) {
+    alert("엑셀에서 지역 데이터를 찾을 수 없습니다.");
+    return;
+  }
+
+  let base = type === "평형" ? size * rData["평당단가"] : rData[type];
+
+  let optionSum = 0;
+  const checkboxes = document.querySelectorAll(".options input[type='checkbox']:checked");
+  checkboxes.forEach(c => {
+    const v = c.value;
+    const opt = {
+      "에어컨필터":10000,"세탁기":10000,"건조기":10000,"사이청소":40000,"대기시간":30000,"새집증후군":70000,
+      "동물털":40000,"기름떼":40000,"냉장고":20000,"비확장베란다":30000,"4층계단":20000,"거주원룸":20000,
+      "바퀴방역":30000,"벽지얼룩":80000,"시스템분해":80000,"시스템1WAY2":50000,"시스템1WAY1":30000
+    }[v] || 0;
+    optionSum += opt;
+  });
+
+  if (checkboxChecked("마루코팅")) optionSum += size * 5000;
+  if (checkboxChecked("외창청소")) optionSum += 5000;
+
+  const total = base + deposit + optionSum;
+  const balance = total - deposit;
+
+  const msg = `입주청소 견적 안내드립니다🙂
+
+📅 일정 : ${date.replace(/-/g,'.')} ${ampm} ${hour}:${minute}
+💰 총 금액 : ${total.toLocaleString()}원
+💵 예약금 : ${deposit.toLocaleString()}원
+
+입금 확인 후 예약이 확정됩니다.
+입금계좌 : 1005-504-674760 우리은행 (주)이사대학
+
+청소 완료 후 현장 팀장님께
+남은 금액 ${balance.toLocaleString()}원 결제 부탁드립니다 :)`;
+
+  document.getElementById("result").innerText = msg;
+  document.getElementById("result").style.display = "block";
+  document.getElementById("copyBtn").style.display = "block";
+}
+
+function checkboxChecked(name) {
+  const el = document.querySelector(`.options input[value='${name}']`);
+  return el && el.checked;
+}
+
+function copyText() {
+  navigator.clipboard.writeText(document.getElementById("result").innerText)
+    .then(() => alert("문자 내용이 복사되었습니다 ✅"));
+}
+</script>
+</body>
+</html>
