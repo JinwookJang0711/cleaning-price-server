@@ -3,3 +3,6 @@ pandas
 gunicorn
 requests
 openpyxl
+flask-cors
+
+
