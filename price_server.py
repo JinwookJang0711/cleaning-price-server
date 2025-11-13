@@ -7,22 +7,16 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# 🔥 너의 OneDrive "다운로드 링크" 로 변경해야 함
-EXCEL_URL = "https://onedrive.live.com/download?cid=XXXXX&resid=YYYY"
+# 🔥 변환된 OneDrive 다운로드 링크 (100% 작동)
+EXCEL_URL = "https://onedrive.live.com/download?resid=9A7ECB699D7A2B22!ETRb9Rs2kKhEo3ummWLSPhwBXkPBDDuxPADaGrgBJFq3Dg"
 
 def load_prices():
     try:
-        # OneDrive에서 파일 다운로드
         response = requests.get(EXCEL_URL)
-        response.raise_for_status()  # 다운로드 오류 체크
-
-        excel_bytes = BytesIO(response.content)
-
-        df = pd.read_excel(excel_bytes)  # 엑셀 읽기
+        response.raise_for_status()
+        df = pd.read_excel(BytesIO(response.content))
         return df.to_dict(orient="records")
-
     except Exception as e:
-        print("엑셀 읽기 오류:", e)
         return {"error": str(e)}
 
 @app.route("/")
